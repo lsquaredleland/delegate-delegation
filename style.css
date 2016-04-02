@@ -1,0 +1,41 @@
+body {
+  background-color: #F7F0E4;
+}
+
+.base {
+  fill: #F7F0E4; /*none;*/
+  stroke: #ccc;
+}
+
+.line {
+  stroke-opacity: .5;
+  fill: none;
+  pointer-events: none;
+}
+
+.line.special-delegate {
+  stroke-opacity: 1;
+  stroke: pink;
+}
+
+
+.circle {
+  stroke: black;
+  stroke-width: 1px;
+}
+
+.circle.special-delegate {
+  stroke: pink;
+  stroke-width: 1.5px;
+}
+
+.circle.delegate {
+  stroke: black;
+  stroke-width: 1px;
+}
+
+.circle.undelegate {
+  fill: gray;
+  stroke: white;
+  stroke-width: 1.5px;
+}
