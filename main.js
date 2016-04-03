@@ -5,8 +5,8 @@ const sidePadding = 100;
 
 const candidatesInfo = {
   // Meta
-  totaldelegates: {label: "Total Delegates", lx: w * .25, ly: margin.top, baseColour: 'lightgray', stroke: 'white'},
-  totalspecialdelegates: {label: "Total Special Delegates", lx: w*.75, ly: margin.top, baseColour: 'lightgray', stroke:'pink'},
+  totaldelegates: {label: "Total Delegates", lx: w * .35, ly: margin.top, baseColour: 'lightgray', stroke: 'white'},
+  totalspecialdelegates: {label: "Total Special Delegates", lx: w*.65, ly: margin.top, baseColour: 'lightgray', stroke:'pink'},
 
   // Democratic
   clinton: {label: "Clinton", lx: margin.right + sidePadding, ly: h/4, baseColour: 'rgb(119, 208, 233)'},
@@ -89,6 +89,7 @@ function loadState(json) {
   const candidates = GOP ? 'R_Candidates' : 'D_Candidates';
   const type = GOP ? 'R_type' : 'D_type';
   const delspecial = GOP ? 'R_delspecial' : 'D_delspecial';
+  const pre = GOP ? 'R_' : 'D_';
   const aggregateCandidates = getAggregateCandidates(stateData, {results, delegates, delspecial})
 
   _.forEach(json.features, (feature) => {
@@ -146,7 +147,7 @@ function loadState(json) {
   const nonGeoState = _.filter(stateData, (d, i) => _.includes(nonStates, d.state_id));
   const [height, width] = [60, 60];
   const spacing = width + 10;
-  const getRectX = (d, i) => w * .5 + i*spacing;
+  const getRectX = (d, i) => w * .45 + i*spacing;
   svgState.selectAll("rect.base")
       .data(nonGeoState)
     .enter()
@@ -167,19 +168,25 @@ function loadState(json) {
       .style("fill", (d) => voteToTexture[d[type]].url())
       .style('pointer-events', 'none') // binding this to .state in css doesn't work
       .attr("transform", (d, i) => {
-        const [x, y] = [w * .5 + i*spacing + width/2, h * .9 + height/2];
+        const [x, y] = [w * .45 + i*spacing + width/2, h * .9 + height/2];
 
         return "translate(" + x + "," + y + ")"
             + "scale(" + (d.PCNT_POPEST18PLUS/100 || 1) + ")"
             + "translate(" + -x + "," + -y + ")";
       })
       .each((d, i) => {
-        const [x, y] = [w * .5 + i*spacing + width/2, h * .9 + height/2];
+        const [x, y] = [w * .45 + i*spacing + width/2, h * .9 + height/2];
         const totaldelegates = d[delegates];
         const delegated = d[results];
         const state_id = d.state_id;
         drawCircle(svg, {x, y, totaldelegates, delegated})
         drawArc(svg, {x, y, state_id, delegated})
+
+        svgState.append('text')
+          .attr({x, y: y - width/2})
+          .style('text-anchor', 'start')
+          .attr('transform', 'rotate(-30,' + x + ',' + y + ')')
+          .text(d.State)
       })
 
   // Drawing candidate loc

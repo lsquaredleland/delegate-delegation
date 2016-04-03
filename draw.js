@@ -101,7 +101,6 @@ function drawCandidates(svg, {candidates}) {
     const isLeft = candidateInfo.lx < w/2;
     const isTopCenter = candidateInfo.ly < h/2 && candidateInfo.lx < w*.8 && candidateInfo.lx > w*.2;
     const xOffset = isLeft ? -30 : 30;
-    const yOffset = isTopCenter ? 100 : 0;
     const loc = candidatesInfo[c(name)];
     const dim = 25;
     svg.append('rect')
@@ -117,11 +116,16 @@ function drawCandidates(svg, {candidates}) {
       .attr({x: loc.lx - xOffset/2, y: loc.ly})
       .style('text-anchor', isLeft ? 'start' : 'end')
       .text(candidatesInfo[c(name)].label)
-    _.forEach(data, (d, i) => { // Need to seperate special delegates + normal delegates, rename special delegates
+    _.forEach(data, (d, i) => {
+      const className = i === 'del' ? 'delegate' : 'special-delegate';
       const data = parseInt(d/10) || 0;
       const dataRemainder = d%10;
-      drawIndividualCircle(svg, {data, x: candidateInfo.lx + xOffset, y: candidateInfo.ly + yOffset, name, className: 'total'})
-      drawIndividualCircle(svg, {data: dataRemainder, isRemainder: true, x: candidateInfo.lx + xOffset*1.25, y: candidateInfo.ly + yOffset, name, className: 'total'})
+      const x = candidateInfo.lx + (i !== 'del' ? xOffset : 0);
+      const yOffset = isTopCenter ? data*4 : 0;
+      const y = candidateInfo.ly + yOffset;
+
+      drawIndividualCircle(svg, {data, x: x + xOffset, y, name, className: 'total-'+i})
+      drawIndividualCircle(svg, {data: dataRemainder, isRemainder: true, x: x + xOffset*1.25, y, name, className: 'total-'+i})
     })
   })
 }

@@ -24,12 +24,12 @@ body {
   stroke-width: 1px;
 }
 
-.circle.special-delegate {
+.circle.special-delegate, .total-sdTot{
   stroke: pink;
   stroke-width: 1.5px;
 }
 
-.circle.delegate {
+.circle.delegate, .total-del {
   stroke: black;
   stroke-width: 1px;
 }
