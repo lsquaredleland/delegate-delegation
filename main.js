@@ -1,7 +1,7 @@
 const margin = {top: 20, right: 20, bottom: 20, left: 20};
 const h = 1100 - margin.top - margin.bottom;
 const w = 1900 - margin.left - margin.right;
-const sidePadding = 100;
+const sidePadding = 150;
 
 const candidatesInfo = {
   // Meta
@@ -30,6 +30,7 @@ const candidatesInfo = {
 
 let stateData;
 
+// Is there data on number of votes recieved rather than percentage per state...?
 const q = d3_queue.queue()
   .defer(d3.json, 'data/auto-calendar-backup.json')
   // This has meta data such as the total number of candidates etc
@@ -83,7 +84,7 @@ const q = d3_queue.queue()
   });
 
 function loadState(json) {
-  const GOP = false;
+  const GOP = true;
   const results = GOP ? 'R_results' : 'D_results';
   const delegates = GOP ? 'R_delegates' : 'D_delegates';
   const candidates = GOP ? 'R_Candidates' : 'D_Candidates';
@@ -138,7 +139,7 @@ function loadState(json) {
         const totaldelegates = d.properties[delegates];
         const delegated = d.properties[results];
         const state_id = d.properties.state_id;
-        drawCircle(svg, {x, y, totaldelegates, delegated})
+        drawCircle(svg, {x, y, properties: d.properties,totaldelegates, delegated})
         drawArc(svg, {x, y, state_id, delegated})
       })
 
@@ -179,7 +180,7 @@ function loadState(json) {
         const totaldelegates = d[delegates];
         const delegated = d[results];
         const state_id = d.state_id;
-        drawCircle(svg, {x, y, totaldelegates, delegated})
+        drawCircle(svg, {x, y, properties: d, totaldelegates, delegated})
         drawArc(svg, {x, y, state_id, delegated})
 
         svgState.append('text')
@@ -203,7 +204,6 @@ function onStateClick(d) {
   d3.selectAll('.line.' + d.state_id + '.special-delegate')
     .style({'stroke-opacity': 1})
 }
-
 
 // Is real state outline the best approach here? -> it has a lower priority over the remained of the data
 // -> really should downplay the background...
