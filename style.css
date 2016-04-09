@@ -15,7 +15,7 @@ body {
 
 .line.special-delegate {
   stroke-opacity: 1;
-  stroke: pink;
+  stroke: maroon;
 }
 
 
@@ -25,7 +25,7 @@ body {
 }
 
 .circle.special-delegate, .total-sdTot{
-  stroke: pink;
+  stroke: maroon;
   stroke-width: 1.5px;
 }
 
@@ -34,8 +34,49 @@ body {
   stroke-width: 1px;
 }
 
-.circle.undelegate {
+.circle.undelegate, .total-undel {
   fill: gray;
   stroke: white;
   stroke-width: 1.5px;
+}
+
+table, th, td {
+  padding-left: 3px;
+  padding-right: 3px;
+  text-align: right;
+}
+
+
+#precincts {
+  font-size: .8em;
+  color: lightgray;
+}
+
+.d3-tip {
+  line-height: 1;
+  font-weight: bold;
+  padding: 12px;
+  background: rgba(162, 32, 0, 0.95);
+  color: #fff;
+  border-radius: 15px;
+}
+
+/* Creates a small triangle extender for the tooltip */
+.d3-tip:after {
+  box-sizing: border-box;
+  display: inline;
+  font-size: 10px;
+  width: 100%;
+  line-height: 1;
+  color: maroon;
+  content: "\25BC";
+  position: absolute;
+  text-align: center;
+}
+
+/* Style northward tooltips differently */
+.d3-tip.n:after {
+  margin: -1px 0 0 0;
+  top: 100%;
+  left: 0;
 }

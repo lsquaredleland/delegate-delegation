@@ -150,8 +150,9 @@ function drawCandidateTotals(svg, {candidates, name, data, candidateInfo, isLeft
         const isLast = i === numColumns - 1;
         const count = colRemainder > 0 && isLast ? colRemainder : numDel;
         const finalValue = isLast ? dataRemainder : null;
+        const className = name === 'totaldelegates' ? 'total-undel' : 'total-'+type;
 
-        drawCircleStack(svg, {data: count, x: x + xOffset, y, name, finalValue, className: 'total-'+type})
+        drawCircleStack(svg, {data: count, x: x + xOffset, y, name, finalValue, className})
       })
     }
     else if (type === 'sdTot') {

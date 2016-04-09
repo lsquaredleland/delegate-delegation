@@ -37,7 +37,7 @@ function getAggregateCandidates(stateData, {results, delegates, delspecial}) {
 
 function color(name, stroke) {
   if (stroke) {
-    return candidatesInfo[c(name)].stroke || 'none';
+    return candidatesInfo[c(name)].stroke || 'black';
   }
   return candidatesInfo[c(name)].baseColour;
 }

@@ -1,12 +1,14 @@
 const margin = {top: 20, right: 20, bottom: 20, left: 20};
 const h = 1100 - margin.top - margin.bottom;
 const w = 1900 - margin.left - margin.right;
-const sidePadding = 150;
+const sidePadding = 200;
+
+let tip;
 
 const candidatesInfo = {
   // Meta
   totaldelegates: {label: "Total Delegates", lx: w * .35, ly: margin.top, baseColour: 'lightgray', stroke: 'white'},
-  totalspecialdelegates: {label: "Total Special Delegates", lx: w*.65, ly: margin.top, baseColour: 'lightgray', stroke:'pink'},
+  totalspecialdelegates: {label: "Total Special Delegates", lx: w*.65, ly: margin.top, baseColour: 'lightgray', stroke:'maroon'},
 
   // Democratic
   clinton: {label: "Clinton", lx: margin.right + sidePadding, ly: h/4, baseColour: 'rgb(119, 208, 233)'},
@@ -32,6 +34,7 @@ let stateData;
 
 // Is there data on number of votes recieved rather than percentage per state...?
 const q = d3_queue.queue()
+  // http://bbg-gfx.s3-website-us-east-1.amazonaws.com/auto-calendar.json
   .defer(d3.json, 'data/auto-calendar-backup.json')
   // This has meta data such as the total number of candidates etc
   // From http://www.bloomberg.com/politics/graphics/2016-delegate-tracker/data/calendar-base.csv
@@ -91,6 +94,7 @@ function loadState(json) {
   const type = GOP ? 'R_type' : 'D_type';
   const delspecial = GOP ? 'R_delspecial' : 'D_delspecial';
   const pre = GOP ? 'R_' : 'D_';
+  const precincts = GOP ? 'R_precincts' : 'D_precincts';
   const aggregateCandidates = getAggregateCandidates(stateData, {results, delegates, delspecial})
 
   _.forEach(json.features, (feature) => {
@@ -136,6 +140,7 @@ function loadState(json) {
       })
       .each((d) => {
         const [x, y] = path.centroid(d);
+        d.properties.centroid = {x, y};
         const totaldelegates = d.properties[delegates];
         const delegated = d.properties[results];
         const state_id = d.properties.state_id;
@@ -145,7 +150,7 @@ function loadState(json) {
 
   // Non continental / albers projection US territories + special areas
   const nonStates = ['us_virgin_islands', 'northern_mariana_islands', 'democrats_abroad', 'american_samoa', 'guam', 'super']
-  const nonGeoState = _.filter(stateData, (d, i) => _.includes(nonStates, d.state_id));
+  const nonGeoState = _.filter(stateData, (d, i) => _.includes(nonStates, d.state_id) && d[results] !== "");
   const [height, width] = [60, 60];
   const spacing = width + 10;
   const getRectX = (d, i) => w * .45 + i*spacing;
@@ -177,6 +182,7 @@ function loadState(json) {
       })
       .each((d, i) => {
         const [x, y] = [w * .45 + i*spacing + width/2, h * .9 + height/2];
+        d.centroid = {x, y}
         const totaldelegates = d[delegates];
         const delegated = d[results];
         const state_id = d.state_id;
@@ -192,17 +198,68 @@ function loadState(json) {
 
   // Drawing candidate loc
   drawCandidates(svg, {candidates: aggregateCandidates})
+
+  tip = d3.tip()
+    .attr('class', 'd3-tip')
+    .offset((d) => {
+      const BBox = d3.select('.base.' + d.state_id).node().getBBox();
+      tipOrigin = {x: BBox.x + BBox.width/2, y: BBox.y};
+      topOfStack = d[delegates] / peoplePerCircle * 4;
+      tipDesired = {x: d.centroid.x, y: d.centroid.y - topOfStack}
+
+      // Issue when do not click on the state is that the original bbox is different...
+
+      return [tipDesired.y - tipOrigin.y, tipDesired.x - tipOrigin.x]
+    })
+    .html((d) => {
+      const candidates = _.filter(d[results], (res) => res.vote !== "0" || !res.del || !res.sdTot);
+      const candidatesSorted = _.sortBy(candidates, (c) => -1*(c.del + c.sdTot));
+      const candidatesToDraw = _.filter(candidatesSorted, (c) => !(c.del === 0 && c.sdTot === 0 && c.vote === 0));
+      console.log(candidatesToDraw)
+
+      // A react component here would be idea....
+      return '<strong id="info-title">' + d.State + '</strong> <br>'
+        + "<table id='info-table'>"
+          + generateHeaders(candidatesToDraw)
+          + generateColumn(candidatesToDraw)
+        + "</table> <br>"
+        + "<div id='precincts'>" + (d[precincts] || 0) + "% of precincts reporting </div>"
+    });
+  svg.call(tip)
+}
+
+function generateHeaders (candidates) {
+  if (_.size(candidates) > 0) {
+    return "<th>"
+      + "<td>Del</td>"
+      + "<td>Sp. Del</td>"
+      + "<td>Votes</td>"
+    + "</th>"
+  }
+  return ""
+}
+
+function generateColumn (candidates) {
+  return _.reduce(candidates, (agg, candidate) => {
+    return agg + "<tr>"
+        + "<td>" + candidate.name + "</td>"
+        + "<td>" + (candidate.del + candidate.sdTot) + "</td>"
+        + "<td>" + (candidate.sdTot) + "</td>"
+        + "<td>" + (candidate.vote) + "%</td>"
+      + "</tr>"
+  }, '');
 }
 
 function onStateClick(d) {
   // Show more state information + highlight all paths leaving state
-  d3.select('.base.' + d.state_id).style('fill', 'maroon')
+  d3.select('.base.' + d.state_id).style('fill', 'orange')
 
   d3.selectAll('.line').style({'stroke-opacity': .2});
   d3.selectAll('.line.' + d.state_id + '.delegate')
-    .style({stroke: 'black', 'stroke-opacity': 1})
+    .style({stroke: 'black', 'stroke-opacity': 1}) // Eliminate black lines?
   d3.selectAll('.line.' + d.state_id + '.special-delegate')
     .style({'stroke-opacity': 1})
+  tip.show(d)
 }
 
 // Is real state outline the best approach here? -> it has a lower priority over the remained of the data
