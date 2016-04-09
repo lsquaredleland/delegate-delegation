@@ -165,7 +165,7 @@ function loadState(json) {
       .attr('x', getRectX)
       .attr('y', h  * .9)
       .attr({height, width})
-      .on('click', onStateClick)
+      .on('click', toggleStateClick)
   svgState.selectAll("rect.state")
       .data(nonGeoState)
     .enter()
@@ -219,6 +219,9 @@ function loadState(json) {
       const candidatesSorted = _.sortBy(candidates, (c) => -1*parseFloat(c.vote));
       const candidatesToDraw = _.filter(candidatesSorted, (c) => !(c.del === 0 && c.sdTot === 0 && c.vote === 0));
 
+      // What about undelegated people? Need to say total number of them
+      console.log(d)
+
       // A react component here would be idea....
       return '<strong id="info-title">' + d.State + ' : ' + d[date] + '</strong> <br>'
         + "<table id='info-table'>"
@@ -270,6 +273,8 @@ function onStateUnclick(state_id) {
   d3.selectAll('.line').style({'stroke-opacity': .5});
 
   // what is the best way to redraw arcs + their colours
+  d3.selectAll('.line.' + state_id + '.delegate').style('stroke', (d) => color(d.name));
+  d3.selectAll('.line.' + state_id + '.special-delegate').style('stroke', 'maroon');
 
   tip.hide()
 }

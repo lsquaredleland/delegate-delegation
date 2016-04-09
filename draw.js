@@ -93,7 +93,7 @@ function drawArc(svg, {x, y, state_id, delegated}) {
 
     const lineData = [[lx,ly], midpoint, [x,y]];
 
-    svgArcs.append("path")
+    svgArcs.append("path").datum({name})
       .attr("class", classNames('line', state_id, name, 'delegate'))
       .style('stroke', color(name))
       .style('stroke-width', candidate.del / strokeWidthModifier)
@@ -109,6 +109,9 @@ function drawArc(svg, {x, y, state_id, delegated}) {
 
 function drawCandidates(svg, {candidates}) {
   // Consider using a <div> element instead of using text
+  const totalspecialdelegates = _.reduce(candidates, (agg, data, name) => agg + (data.sdTot || 0), 0);
+  const totaldelegates = _.reduce(candidates, (agg, data, name) => agg + (data.del || 0), 0);
+
   _.forEach(candidates, (data, name) => {
     const candidateInfo = candidatesInfo[c(name)];
     const isLeft = candidateInfo.lx < w/2;
@@ -131,7 +134,45 @@ function drawCandidates(svg, {candidates}) {
       .text(candidatesInfo[c(name)].label)
 
     drawCandidateTotals(svg, {candidates, name, data, candidateInfo, isLeft, isTopCenter, xOffset});
+
+    let textAnchor = (isLeft) ? 'end' : 'start';
+    if (isTopCenter) {
+      textAnchor = textAnchor === 'end' ? 'start' : 'end';
+    }
+    let y = loc.ly + 30;
+    const x = loc.lx - xOffset/2;
+    if (!_.isUndefined(data.del)) {
+      appendCandidateDataText(svg, {x, y, textAnchor, text:"Delegates: " + data.del});
+      y += 20;
+    }
+    if (!_.isUndefined(data.sdTot)) {
+      appendCandidateDataText(svg, {x, y, textAnchor, text:"Special Delegates: " + data.sdTot});
+      y += 20;
+    }
+    if (!_.isUndefined(data.sdTot) && !_.isUndefined(data.del)) {
+      appendCandidateDataText(svg, {x, y, textAnchor, text:"Total Delegates: " + (data.del + data.sdTot)});
+      y += 20;
+    }
+    if (name === 'totaldelegates') {
+      appendCandidateDataText(svg, {x, y, textAnchor, text:"Number of Delegates: " + totaldelegates});
+      y += 20;
+      appendCandidateDataText(svg, {x, y, textAnchor, text:"Delegates Remaining: " + (totaldelegates - data.del)});
+      y += 20;
+    }
+    if (name === 'totalspecialdelegates') {
+      appendCandidateDataText(svg, {x, y, textAnchor, text:"Number of Special Delegates: " + totalspecialdelegates});
+      y += 20;
+      appendCandidateDataText(svg, {x, y, textAnchor, text:"Special Delegates Remaining: " + (totalspecialdelegates - data.sdTot)});
+      y += 20;
+    }
   })
+}
+
+function appendCandidateDataText(svg, {x, y, textAnchor, text}) {
+  svg.append('text')
+    .attr({x, y})
+    .style('text-anchor', textAnchor)
+    .text(text)
 }
 
 function drawCandidateTotals(svg, {candidates, name, data, candidateInfo, isLeft, isTopCenter, xOffset}) {
@@ -143,14 +184,14 @@ function drawCandidateTotals(svg, {candidates, name, data, candidateInfo, isLeft
       let {numColumns, colRemainder, dataRemainder} = getNumColAndRemainder({d, numDel});
       if (dataRemainder > 0 && numColumns === 0) { numColumns++; colRemainder++; };
 
+      const yOffset = isTopCenter ? numDel*4 : 0;
+      const y = candidateInfo.ly + yOffset;
+      const className = name === 'totaldelegates' ? 'total-undel' : 'total-'+type;
       _.forEach(new Array(numColumns), (col, i) => {
         const x = candidateInfo.lx + (isLeft ? -20*i : 20*i);
-        const yOffset = isTopCenter ? numDel*4 : 0;
-        const y = candidateInfo.ly + yOffset;
         const isLast = i === numColumns - 1;
         const count = colRemainder > 0 && isLast ? colRemainder : numDel;
         const finalValue = isLast ? dataRemainder : null;
-        const className = name === 'totaldelegates' ? 'total-undel' : 'total-'+type;
 
         drawCircleStack(svg, {data: count, x: x + xOffset, y, name, finalValue, className})
       })
