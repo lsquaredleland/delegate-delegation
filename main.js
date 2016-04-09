@@ -4,6 +4,10 @@ const w = 1900 - margin.left - margin.right;
 const sidePadding = 200;
 
 let tip;
+let currentSelectedState = null;
+let stateData;
+
+//Have a button to show how much more candidates need to win? Overlay on current total stacks?
 
 const candidatesInfo = {
   // Meta
@@ -20,17 +24,15 @@ const candidatesInfo = {
   cruz: {label: "Cruz", lx: w - sidePadding, ly: margin.top + sidePadding, baseColour: 'rgb(246,140,47)'},
   rubio: {label: "Rubio", lx: w - sidePadding, ly: h - sidePadding, baseColour: 'rgb(198,38,143)'},
   kasich: {label: "Kasich", lx: margin.right + sidePadding, ly: h - sidePadding, baseColour: 'rgb(109,190,74)'},
-  carson: {label: "Carson", lx: w - sidePadding, ly: h/4, baseColour: 'rgb(192,107,63)'},
-  bush: {label: "Bush", lx: margin.right + sidePadding, ly: h/4, baseColour: 'rgb(118,82,162)'},
-  fiorina: {label: "Fiorina", lx: w - sidePadding, ly: h*3/4, baseColour: 'rgb(0,142,130)'},
-  huckabee: {label: "Huckabee", lx: margin.right + sidePadding, ly: h*3/4, baseColour: 'rgb(194,165,241)'},
+  carson: {label: "Carson", lx: w - sidePadding, ly: h*.35, baseColour: 'rgb(192,107,63)'},
+  bush: {label: "Bush", lx: margin.right + sidePadding, ly: h*.35, baseColour: 'rgb(118,82,162)'},
+  fiorina: {label: "Fiorina", lx: w - sidePadding, ly: h*.65, baseColour: 'rgb(0,142,130)'},
+  huckabee: {label: "Huckabee", lx: margin.right + sidePadding, ly: h*.65, baseColour: 'rgb(194,165,241)'},
   paul: {label: "Paul", lx: w - sidePadding, ly: h/2, baseColour: 'rgb(232,191,128)'},
   christie: {label: "Christie", lx: margin.right + sidePadding, ly: h/2, baseColour: 'rgb(233,164,135)'},
   gilmore: {label: "Gilmore", lx: w*.75, ly: h - sidePadding/2, baseColour: 'rgb(7,168,134)'},
   santorum: {label: "Santorum", lx: w*.25, ly: h - sidePadding/2, baseColour: 'rgb(191,192,92)'}
 }
-
-let stateData;
 
 // Is there data on number of votes recieved rather than percentage per state...?
 const q = d3_queue.queue()
@@ -95,6 +97,7 @@ function loadState(json) {
   const delspecial = GOP ? 'R_delspecial' : 'D_delspecial';
   const pre = GOP ? 'R_' : 'D_';
   const precincts = GOP ? 'R_precincts' : 'D_precincts';
+  const date = GOP ? 'R_date' : 'D_date';
   const aggregateCandidates = getAggregateCandidates(stateData, {results, delegates, delspecial})
 
   _.forEach(json.features, (feature) => {
@@ -121,7 +124,7 @@ function loadState(json) {
       .append('path')
       .attr('class', (d) => classNames('base', d.properties.state_id))
       .attr("d", path)
-      .on('click', (d) => onStateClick(d.properties))
+      .on('click', (d) => toggleStateClick(d.properties))
 
   svgState.selectAll(".state")
       .data(json.features)
@@ -213,12 +216,11 @@ function loadState(json) {
     })
     .html((d) => {
       const candidates = _.filter(d[results], (res) => res.vote !== "0" || !res.del || !res.sdTot);
-      const candidatesSorted = _.sortBy(candidates, (c) => -1*(c.del + c.sdTot));
+      const candidatesSorted = _.sortBy(candidates, (c) => -1*parseFloat(c.vote));
       const candidatesToDraw = _.filter(candidatesSorted, (c) => !(c.del === 0 && c.sdTot === 0 && c.vote === 0));
-      console.log(candidatesToDraw)
 
       // A react component here would be idea....
-      return '<strong id="info-title">' + d.State + '</strong> <br>'
+      return '<strong id="info-title">' + d.State + ' : ' + d[date] + '</strong> <br>'
         + "<table id='info-table'>"
           + generateHeaders(candidatesToDraw)
           + generateColumn(candidatesToDraw)
@@ -260,6 +262,28 @@ function onStateClick(d) {
   d3.selectAll('.line.' + d.state_id + '.special-delegate')
     .style({'stroke-opacity': 1})
   tip.show(d)
+}
+
+function onStateUnclick(state_id) {
+  // Show more state information + highlight all paths leaving state
+  d3.select('.base.' + state_id).style('fill', '#F7F0E4')
+  d3.selectAll('.line').style({'stroke-opacity': .5});
+
+  // what is the best way to redraw arcs + their colours
+
+  tip.hide()
+}
+
+function toggleStateClick(d) {
+  if (d.state_id !== currentSelectedState ) {
+    onStateUnclick(currentSelectedState)
+    onStateClick(d);
+    currentSelectedState = d.state_id;
+  }
+  else {
+    onStateUnclick(currentSelectedState);
+    currentSelectedState = null;
+  }
 }
 
 // Is real state outline the best approach here? -> it has a lower priority over the remained of the data
