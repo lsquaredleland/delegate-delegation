@@ -1,18 +1,20 @@
 const margin = {top: 20, right: 20, bottom: 20, left: 20};
-const h = 1100 - margin.top - margin.bottom;
+const h = 1000 - margin.top - margin.bottom;
 const w = 1900 - margin.left - margin.right;
 const sidePadding = 200;
 
 let tip;
 let currentSelectedState = null;
+const peoplePerCircle = 10;
 let stateData;
+let usStates;
 
 //Have a button to show how much more candidates need to win? Overlay on current total stacks?
 
 const candidatesInfo = {
   // Meta
-  totaldelegates: {label: "Total Delegates", lx: w * .35, ly: margin.top, baseColour: 'lightgray', stroke: 'white'},
-  totalspecialdelegates: {label: "Total Special Delegates", lx: w*.65, ly: margin.top, baseColour: 'lightgray', stroke:'maroon'},
+  totaldelegates: {label: "Total Delegates", lx: w * .35, ly: margin.top, baseColour: 'gray', stroke: 'white'},
+  totalspecialdelegates: {label: "Total Special Delegates", lx: w*.65, ly: margin.top, baseColour: 'gray', stroke:'maroon'},
 
   // Democratic
   clinton: {label: "Clinton", lx: margin.right + sidePadding, ly: h/4, baseColour: 'rgb(119, 208, 233)'},
@@ -45,7 +47,7 @@ const q = d3_queue.queue()
   .defer(d3.csv, 'data/area.csv')
   .defer(d3.json, 'data/us-states.json')
   .awaitAll(function(error, data) {
-    if (error) throw error;
+    if (error) console.log(error);
 
     [autoCalendarBackup, calendarBase, pop, area, usStates] = data;
 
@@ -84,12 +86,13 @@ const q = d3_queue.queue()
         // _.assign(state, {total_area_mi, total_land_area_mi, total_water_area_mi})
       }
     })
-    loadState(usStates)
-    console.log(stateData)
+    loadState("GOP")
+    loadState("Demo")
+    generateLegend()
   });
 
-function loadState(json) {
-  const GOP = true;
+function loadState(party) {
+  const GOP = party === 'GOP';
   const results = GOP ? 'R_results' : 'D_results';
   const delegates = GOP ? 'R_delegates' : 'D_delegates';
   const candidates = GOP ? 'R_Candidates' : 'D_Candidates';
@@ -100,14 +103,16 @@ function loadState(json) {
   const date = GOP ? 'R_date' : 'D_date';
   const aggregateCandidates = getAggregateCandidates(stateData, {results, delegates, delspecial})
 
-  _.forEach(json.features, (feature) => {
+  _.forEach(usStates.features, (feature) => {
     const name = feature.properties.name;
     const data = _.find(stateData, (state) => _.includes(state.name, name));
     feature.properties = data;
   })
-  const svg = d3.select("#chartArea").append('svg')
+
+  const svg = d3.select("#chart" + party).append('svg')
       .attr("width", w)
       .attr("height", h)
+      .style({display: 'block', margin: 'auto'});
   const projection = albersUsaPr() //d3.geo.___()
       .translate([w/2, h/2])
       .scale(1600);
@@ -119,7 +124,7 @@ function loadState(json) {
 
   // base layer
   svgState.selectAll("path.base")
-      .data(json.features)
+      .data(usStates.features)
     .enter()
       .append('path')
       .attr('class', (d) => classNames('base', d.properties.state_id))
@@ -127,7 +132,7 @@ function loadState(json) {
       .on('click', (d) => toggleStateClick(d.properties))
 
   svgState.selectAll(".state")
-      .data(json.features)
+      .data(usStates.features)
     .enter()
       .append("path")
       .attr('class', (d) => classNames('state', d.properties.state_id))
@@ -202,6 +207,7 @@ function loadState(json) {
   // Drawing candidate loc
   drawCandidates(svg, {candidates: aggregateCandidates})
 
+  // toolTips get fucked up when zoomed in, should make custom tooltips rather than use library....
   tip = d3.tip()
     .attr('class', 'd3-tip')
     .offset((d) => {
@@ -220,44 +226,30 @@ function loadState(json) {
       const candidatesToDraw = _.filter(candidatesSorted, (c) => !(c.del === 0 && c.sdTot === 0 && c.vote === 0));
 
       // What about undelegated people? Need to say total number of them
-      console.log(d)
+      const specialDelegatesHaventVoted = d[delspecial] - _.reduce(candidates, (agg, c) => agg + c.sdTot, 0);
+      const delegatesHaventVoted = d[delegates] - d[delspecial] - _.reduce(candidates, (agg, c) => agg + c.del, 0);
+      const unvoted = {name: "Haven't Voted", del: delegatesHaventVoted, sdTot:specialDelegatesHaventVoted};
+      let candidatesColumns;
+      if (delegatesHaventVoted + specialDelegatesHaventVoted > 0) {
+        candidatesColumns = _.concat(candidatesToDraw, unvoted);
+      }
+
+      console.log(d) // Look into GOP Wyoming -> all are special delegates?
 
       // A react component here would be idea....
       return '<strong id="info-title">' + d.State + ' : ' + d[date] + '</strong> <br>'
         + "<table id='info-table'>"
-          + generateHeaders(candidatesToDraw)
-          + generateColumn(candidatesToDraw)
+          + generateHeaders(candidatesColumns || candidatesToDraw)
+          + generateColumn(candidatesColumns || candidatesToDraw)
         + "</table> <br>"
         + "<div id='precincts'>" + (d[precincts] || 0) + "% of precincts reporting </div>"
     });
   svg.call(tip)
 }
 
-function generateHeaders (candidates) {
-  if (_.size(candidates) > 0) {
-    return "<th>"
-      + "<td>Del</td>"
-      + "<td>Sp. Del</td>"
-      + "<td>Votes</td>"
-    + "</th>"
-  }
-  return ""
-}
-
-function generateColumn (candidates) {
-  return _.reduce(candidates, (agg, candidate) => {
-    return agg + "<tr>"
-        + "<td>" + candidate.name + "</td>"
-        + "<td>" + (candidate.del + candidate.sdTot) + "</td>"
-        + "<td>" + (candidate.sdTot) + "</td>"
-        + "<td>" + (candidate.vote) + "%</td>"
-      + "</tr>"
-  }, '');
-}
-
 function onStateClick(d) {
   // Show more state information + highlight all paths leaving state
-  d3.select('.base.' + d.state_id).style('fill', 'orange')
+  d3.selectAll('.base.' + d.state_id).style('fill', 'orange')
 
   d3.selectAll('.line').style({'stroke-opacity': .2});
   d3.selectAll('.line.' + d.state_id + '.delegate')
@@ -269,7 +261,7 @@ function onStateClick(d) {
 
 function onStateUnclick(state_id) {
   // Show more state information + highlight all paths leaving state
-  d3.select('.base.' + state_id).style('fill', '#F7F0E4')
+  d3.selectAll('.base.' + state_id).style('fill', '#F7F0E4')
   d3.selectAll('.line').style({'stroke-opacity': .5});
 
   // what is the best way to redraw arcs + their colours
@@ -291,16 +283,8 @@ function toggleStateClick(d) {
   }
 }
 
+// Encode delegate allocation -> http://www.realclearpolitics.com/epolls/2016/president/republican_delegate_count.html
+// -> Proportional, winner take all, unbound, Direct Election -> different thresholds...
+
 // Is real state outline the best approach here? -> it has a lower priority over the remained of the data
 // -> really should downplay the background...
-
-// Find CSV with current state population + delegate information -> distinguise between different delegates
-// Note there are 57 places where delegates originate from, including tiny island nations -> US Virign islands...
-// If show a map of the US, need to add those elements too... or could have them on the side...
-
-// In each state draw a circle -> shows the distribution / cut up of candidates selected for that state
-// -> split top and bottom halves for bound / unbound?
-
-// Each arc show a delegate vs vote?
-// Toggle between delegate + popular vote...
-// Look at the ratio between populate vote + super delegate allocation...

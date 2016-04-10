@@ -2,42 +2,38 @@
   <head>
     <meta charset="utf-8">
     <title>Major League Data Visualization</title>
+
     <script src="lib/d3-queue.v2.js" charset="utf-8"></script>
     <script src="lib/d3.js" charset="utf-8"></script>
     <script src="lib/textures.min.js" charset="utf-8"></script>
+
     <script src="lib/d3.hexbin.min.js" charset="utf-8"></script>
     <script src="lib/d3-tip.js" charset="utf-8"></script>
 
-    <!--<script src="lib/babel-standalone.6.4.4.min.js" charset="utf-8"></script>-->
-    <!--<script src="lib/browser.js"></script>-->
-    <!--<script src="lib/es6-module-loader.js"></script>-->
-
-    <!--<script src="lib/system.js" charset="utf-8"></script>-->
-
-    <!--<script src="lib/topojson.v1.min.js"></script>-->
     <script src="lib/albers-usa-pr.js"></script>
     <script src="lib/lodash.js" charset="utf-8"></script>
-
     <script src="lib/classNames.js" charset="utf-8"></script>
-    <!--<script src="lib/classNames-dedupe.js" charset="utf-8"></script>-->
 
     <link rel="stylesheet" href="style.css">
   </head>
 
   <body>
-    <div id="chartArea"></div>
-    <!--<script>
-      System.config({
-        transpiler: 'babel', //How to do this correctly....
-        babelOptions: {
-          "presets": ["es2015"]
-        }
-      });
-      System.import('main.js'); //This causes issues with global variables not being found
-    </script>-->
+    <h1>Delegate Delegation</h1>
+
+    <div id="chartArea">
+      <h2>GOP</h2>
+      <div id="chartGOP"></div>
+      <h2>Democrats</h2>
+      <div id="chartDemo"></div>
+    </div>
+
+    <h3>Legend</h3>
+    <div id="legendArea"></div>
+
 
     <script src="helper.js"></script>
     <script src="draw.js"></script>
+    <script src="legend.js"></script>
     <script src="main.js"></script>
   </body>
 

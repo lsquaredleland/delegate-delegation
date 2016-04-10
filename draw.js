@@ -5,8 +5,6 @@
 // What if used hexagons instead of circles?
 // What to do if there is only 1 or two delegates...
 
-const peoplePerCircle = 10;
-
 function drawCircle(svg, {x, y, properties, totaldelegates, delegated}) {
   let offset = 0;
 
@@ -107,34 +105,42 @@ function drawArc(svg, {x, y, state_id, delegated}) {
   })
 }
 
+function candidateMouseover(name) {
+  d3.selectAll('.line.' + name).style('stroke-opacity', 1);
+  d3.selectAll('.label-' + name).style('font-weight', 'bold');
+}
+
+function candidateMouseout(name) {
+  d3.selectAll('.line.' + name).style('stroke-opacity', .5);
+  d3.selectAll('.label-' + name).style('font-weight', 'normal');
+}
+
 function drawCandidates(svg, {candidates}) {
   // Consider using a <div> element instead of using text
-  const totalspecialdelegates = _.reduce(candidates, (agg, data, name) => agg + (data.sdTot || 0), 0);
-  const totaldelegates = _.reduce(candidates, (agg, data, name) => agg + (data.del || 0), 0);
+  console.log(candidates)
 
   _.forEach(candidates, (data, name) => {
-    const candidateInfo = candidatesInfo[c(name)];
+    const candidateInfo = candidatesInfo[name];
     const isLeft = candidateInfo.lx < w/2;
     const isTopCenter = candidateInfo.ly < h/2 && candidateInfo.lx < w*.8 && candidateInfo.lx > w*.2;
     const xOffset = isLeft ? -30 : 30;
-    const loc = candidatesInfo[c(name)];
+    const loc = candidatesInfo[name];
     const dim = 25;
     svg.append('rect')
       .attr({x: loc.lx - dim/2, y: loc.ly - dim/2, width: dim, height: dim, rx: 5})
       .style({fill: color(name), stroke: color(name, true), 'stroke-width': '2px'})
-      .on('mouseover', (d) => {
-        d3.selectAll('.line.' + name).style('stroke-opacity', 1);
-      })
-      .on('mouseout', (d) => {
-        d3.selectAll('.line.' + name).style('stroke-opacity', .5);
-      })
+      .on('mouseover', () => candidateMouseover(name))
+      .on('mouseout', () => candidateMouseout(name))
     svg.append('text')
+      .attr('class', 'label-' + name)
       .attr({x: loc.lx - xOffset/2, y: loc.ly})
       .style('text-anchor', isLeft ? 'start' : 'end')
-      .text(candidatesInfo[c(name)].label)
+      .text(candidatesInfo[name].label)
 
     drawCandidateTotals(svg, {candidates, name, data, candidateInfo, isLeft, isTopCenter, xOffset});
 
+    const isTotalDelegates = name === 'totaldelegates';
+    const isTotalSpecialDelegates = name === 'totalspecialdelegates'
     let textAnchor = (isLeft) ? 'end' : 'start';
     if (isTopCenter) {
       textAnchor = textAnchor === 'end' ? 'start' : 'end';
@@ -142,37 +148,41 @@ function drawCandidates(svg, {candidates}) {
     let y = loc.ly + 30;
     const x = loc.lx - xOffset/2;
     if (!_.isUndefined(data.del)) {
-      appendCandidateDataText(svg, {x, y, textAnchor, text:"Delegates: " + data.del});
+      const textToAdd = (isTotalDelegates || isTotalSpecialDelegates) ? ' Unallocated' : '';
+      appendCandidateDataText(svg, {x, y, textAnchor, name, text:"Delegates" + textToAdd + ": " + data.del});
       y += 20;
     }
     if (!_.isUndefined(data.sdTot)) {
-      appendCandidateDataText(svg, {x, y, textAnchor, text:"Special Delegates: " + data.sdTot});
+      const textToAdd = (isTotalDelegates || isTotalSpecialDelegates) ? ' Unallocated' : '';
+      appendCandidateDataText(svg, {x, y, textAnchor, name, text:"Special Delegates" + textToAdd + ": " + data.sdTot});
       y += 20;
     }
     if (!_.isUndefined(data.sdTot) && !_.isUndefined(data.del)) {
-      appendCandidateDataText(svg, {x, y, textAnchor, text:"Total Delegates: " + (data.del + data.sdTot)});
+      appendCandidateDataText(svg, {x, y, textAnchor, name, text:"Total Delegates: " + (data.del + data.sdTot)});
       y += 20;
     }
-    if (name === 'totaldelegates') {
-      appendCandidateDataText(svg, {x, y, textAnchor, text:"Number of Delegates: " + totaldelegates});
+    if (isTotalDelegates) {
+      appendCandidateDataText(svg, {x, y, textAnchor, name, text:"Delegates Allocated: " + (data.total - data.del)}); //this is too small...
       y += 20;
-      appendCandidateDataText(svg, {x, y, textAnchor, text:"Delegates Remaining: " + (totaldelegates - data.del)});
+      appendCandidateDataText(svg, {x, y, textAnchor, name, text:"Total Delegates: " + (data.total)});
       y += 20;
     }
-    if (name === 'totalspecialdelegates') {
-      appendCandidateDataText(svg, {x, y, textAnchor, text:"Number of Special Delegates: " + totalspecialdelegates});
+    if (isTotalSpecialDelegates) {
+      appendCandidateDataText(svg, {x, y, textAnchor, name, text:"Special Delegates Allocated: " + (data.total - data.sdTot)});
       y += 20;
-      appendCandidateDataText(svg, {x, y, textAnchor, text:"Special Delegates Remaining: " + (totalspecialdelegates - data.sdTot)});
+      appendCandidateDataText(svg, {x, y, textAnchor, name, text:"Total Special Delegates: " + (data.total)});
       y += 20;
     }
   })
 }
 
-function appendCandidateDataText(svg, {x, y, textAnchor, text}) {
+function appendCandidateDataText(svg, {x, y, name, textAnchor, text}) {
   svg.append('text')
-    .attr({x, y})
+    .attr({x, y, class: 'label-' + name})
     .style('text-anchor', textAnchor)
     .text(text)
+    .on('mouseover', () => candidateMouseover(name))
+    .on('mouseout', () => candidateMouseout(name))
 }
 
 function drawCandidateTotals(svg, {candidates, name, data, candidateInfo, isLeft, isTopCenter, xOffset}) {
@@ -188,7 +198,7 @@ function drawCandidateTotals(svg, {candidates, name, data, candidateInfo, isLeft
       const y = candidateInfo.ly + yOffset;
       const className = name === 'totaldelegates' ? 'total-undel' : 'total-'+type;
       _.forEach(new Array(numColumns), (col, i) => {
-        const x = candidateInfo.lx + (isLeft ? -20*i : 20*i);
+        const x = candidateInfo.lx + (isLeft ? -peoplePerCircle*2*i : peoplePerCircle*2*i);
         const isLast = i === numColumns - 1;
         const count = colRemainder > 0 && isLast ? colRemainder : numDel;
         const finalValue = isLast ? dataRemainder : null;
@@ -199,7 +209,7 @@ function drawCandidateTotals(svg, {candidates, name, data, candidateInfo, isLeft
     else if (type === 'sdTot') {
       const delData = candidates[name]['del']
       const {numColumns: numColumnsDel} = getNumColAndRemainder({d:delData, numDel:25});
-      const delOffset = (isLeft ? -20*numColumnsDel : 20*numColumnsDel);
+      const delOffset = (isLeft ? -peoplePerCircle*2*numColumnsDel : peoplePerCircle*2*numColumnsDel);
 
       const yOffset = isTopCenter ? numDel*4 : 0;
       const y = candidateInfo.ly + yOffset;
@@ -207,7 +217,7 @@ function drawCandidateTotals(svg, {candidates, name, data, candidateInfo, isLeft
       let {numColumns, colRemainder, dataRemainder} = getNumColAndRemainder({d, numDel});
       if (dataRemainder > 0 && numColumns === 0) { numColumns++; colRemainder++; };
       _.forEach(new Array(numColumns), (col, i) => {
-        const x = candidateInfo.lx + (isLeft ? -20*i : 20*i);
+        const x = candidateInfo.lx + (isLeft ? -peoplePerCircle*2*i : peoplePerCircle*2*i);
         const isLast = i === numColumns - 1;
         const count = colRemainder > 0 && isLast ? colRemainder : numDel;
         const finalValue = isLast ? dataRemainder : null;
@@ -227,6 +237,8 @@ function drawCircleStack(svg, {data, className, name, offset = 0, x, y, finalVal
       .attr('cy', y - i*4 - offset*4)
       .attr('r', r)
       .style('fill', name ? color(name) : null)
+      .on('mouseover', () => candidateMouseover(name))
+      .on('mouseout', () => candidateMouseout(name))
   })
 }
 

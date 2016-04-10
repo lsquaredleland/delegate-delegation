@@ -12,14 +12,19 @@ function normalDelegated(results) {
 
 function getAggregateCandidates(stateData, {results, delegates, delspecial}) {
   let aggregateCandidates  = {};
-  aggregateCandidates['totaldelegates'] = {del:0};
-  aggregateCandidates['totalspecialdelegates'] = {sdTot:0};
+  aggregateCandidates['totaldelegates'] = {del:0, total: 0};
+  aggregateCandidates['totalspecialdelegates'] = {sdTot:0, total: 0};
 
   _.forEach(stateData, (state) => {
-    aggregateCandidates['totaldelegates'].del += !_.isUndefined(state[delegates]) ? state[delegates] : 0;
-    aggregateCandidates['totalspecialdelegates'].sdTot += !_.isUndefined(state[delspecial]) ? state[delspecial] : 0;
+    aggregateCandidates['totaldelegates'].total += (state[delegates] || 0);
+    aggregateCandidates['totaldelegates'].del += (state[delegates] || 0);
+    aggregateCandidates['totalspecialdelegates'].total += (state[delspecial] || 0);
+    aggregateCandidates['totalspecialdelegates'].sdTot += (state[delspecial] || 0);
+
     _.forEach(state[results], (candidate) => {
       const name = c(candidate.name)
+      aggregateCandidates['totaldelegates'].del -= (candidate.del || 0);
+      aggregateCandidates['totalspecialdelegates'].sdTot -= (candidate.sdTot || 0);
       if (_.has(aggregateCandidates, name)) {
         aggregateCandidates[name].del += candidate.del;
         aggregateCandidates[name].sdTot += candidate.sdTot;
@@ -32,6 +37,8 @@ function getAggregateCandidates(stateData, {results, delegates, delspecial}) {
       }
     })
   })
+  aggregateCandidates['totaldelegates'].total -= aggregateCandidates['totalspecialdelegates'].total;
+  aggregateCandidates['totaldelegates'].del -= aggregateCandidates['totalspecialdelegates'].total;
   return aggregateCandidates
 }
 
@@ -60,4 +67,26 @@ function stateTextures(svg) {
   svg.call(convention);
 
   return _.zipObject(diffVoteType, [primary, caucus, convention])
+}
+
+function generateHeaders (candidates) {
+  if (_.size(candidates) > 0) {
+    return "<th>"
+      + "<td>Del</td>"
+      + "<td>Sp. Del</td>"
+      + "<td>Votes</td>"
+    + "</th>"
+  }
+  return ""
+}
+
+function generateColumn (candidates) {
+  return _.reduce(candidates, (agg, candidate) => {
+    return agg + "<tr>"
+        + "<td>" + (candidate.name) + "</td>"
+        + "<td>" + (candidate.del) + "</td>"
+        + "<td>" + (candidate.sdTot) + "</td>"
+        + "<td>" + (candidate.vote ? candidate.vote + '%' : '') + "</td>"
+      + "</tr>"
+  }, '');
 }
