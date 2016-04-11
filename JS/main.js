@@ -22,10 +22,10 @@ const candidatesInfo = {
   omalley: {label: "O'Malley", lx: margin.right + sidePadding, ly: h - sidePadding, baseColour: 'rgb(246, 140, 47)'},
 
   // Republican / GOP
-  trump: {label: "Trump", lx: margin.right + sidePadding, ly: margin.top + sidePadding, baseColour: 'rgb(254, 210, 8)'},
-  cruz: {label: "Cruz", lx: w - sidePadding, ly: margin.top + sidePadding, baseColour: 'rgb(246,140,47)'},
-  rubio: {label: "Rubio", lx: w - sidePadding, ly: h - sidePadding, baseColour: 'rgb(198,38,143)'},
-  kasich: {label: "Kasich", lx: margin.right + sidePadding, ly: h - sidePadding, baseColour: 'rgb(109,190,74)'},
+  trump: {label: "Trump", lx: margin.right + sidePadding, ly: margin.top + sidePadding*.6, baseColour: 'rgb(254, 210, 8)'},
+  cruz: {label: "Cruz", lx: w - sidePadding, ly: margin.top + sidePadding*.6, baseColour: 'rgb(246,140,47)'},
+  rubio: {label: "Rubio", lx: w - sidePadding, ly: h - sidePadding*.6, baseColour: 'rgb(198,38,143)'},
+  kasich: {label: "Kasich", lx: margin.right + sidePadding, ly: h - sidePadding*.6, baseColour: 'rgb(109,190,74)'},
   carson: {label: "Carson", lx: w - sidePadding, ly: h*.35, baseColour: 'rgb(192,107,63)'},
   bush: {label: "Bush", lx: margin.right + sidePadding, ly: h*.35, baseColour: 'rgb(118,82,162)'},
   fiorina: {label: "Fiorina", lx: w - sidePadding, ly: h*.65, baseColour: 'rgb(0,142,130)'},
@@ -39,7 +39,7 @@ const candidatesInfo = {
 // Is there data on number of votes recieved rather than percentage per state...?
 const q = d3_queue.queue()
   // http://bbg-gfx.s3-website-us-east-1.amazonaws.com/auto-calendar.json
-  .defer(d3.json, 'data/auto-calendar-backup.json')
+  .defer(d3.json, 'http://bbg-gfx.s3-website-us-east-1.amazonaws.com/auto-calendar.json' || 'data/auto-calendar-backup.json')
   // This has meta data such as the total number of candidates etc
   // From http://www.bloomberg.com/politics/graphics/2016-delegate-tracker/data/calendar-base.csv
   .defer(d3.csv, 'data/calendar-base.csv')
