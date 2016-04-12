@@ -1,6 +1,6 @@
 const margin = {top: 20, right: 20, bottom: 20, left: 20};
 const h = 1000 - margin.top - margin.bottom;
-const w = 1900 - margin.left - margin.right;
+const w = 1800 - margin.left - margin.right;
 const sidePadding = 200;
 
 let tip;
@@ -8,6 +8,16 @@ let currentSelectedState = null;
 const peoplePerCircle = 10;
 let stateData;
 let usStates;
+
+let GOP;
+let results;
+let delegates;
+let candidates;
+let type;
+let delspecial;
+let pre;
+let precincts;
+let date;
 
 //Have a button to show how much more candidates need to win? Overlay on current total stacks?
 
@@ -89,20 +99,24 @@ const q = d3_queue.queue()
     generateLegend()
   });
 
+function setPartyVariables(party) {
+  GOP = party === 'GOP';
+  results = GOP ? 'R_results' : 'D_results';
+  delegates = GOP ? 'R_delegates' : 'D_delegates';
+  candidates = GOP ? 'R_Candidates' : 'D_Candidates';
+  type = GOP ? 'R_type' : 'D_type';
+  delspecial = GOP ? 'R_delspecial' : 'D_delspecial';
+  pre = GOP ? 'R_' : 'D_';
+  precincts = GOP ? 'R_precincts' : 'D_precincts';
+  date = GOP ? 'R_date' : 'D_date';
+}
+
 function loadState(party) {
   const notSelected = party === 'GOP' ? 'demo' : 'GOP';
   d3.select('#' + party).style('background-color', 'orange');
   d3.select('#' + notSelected).style('background-color', '#F7F0E4');
 
-  const GOP = party === 'GOP';
-  const results = GOP ? 'R_results' : 'D_results';
-  const delegates = GOP ? 'R_delegates' : 'D_delegates';
-  const candidates = GOP ? 'R_Candidates' : 'D_Candidates';
-  const type = GOP ? 'R_type' : 'D_type';
-  const delspecial = GOP ? 'R_delspecial' : 'D_delspecial';
-  const pre = GOP ? 'R_' : 'D_';
-  const precincts = GOP ? 'R_precincts' : 'D_precincts';
-  const date = GOP ? 'R_date' : 'D_date';
+  setPartyVariables(party)
   const aggregateCandidates = getAggregateCandidates(stateData, {results, delegates, delspecial})
 
   _.forEach(usStates.features, (feature) => {
@@ -263,6 +277,12 @@ function onStateClick(d) {
     .style({stroke: 'black', 'stroke-opacity': 1}) // Eliminate black lines?
   d3.selectAll('.line.' + d.state_id + '.special-delegate')
     .style({'stroke-opacity': 1})
+
+  const candidates = _.filter(d[results], (can) => can.del > 0);
+  _.forEach(candidates, (can) => {
+    d3.selectAll('.label.' + c(can.name)).style('font-weight', 'bold')
+  })
+
   tip.show(d)
 }
 
@@ -274,6 +294,8 @@ function onStateUnclick(state_id) {
   // what is the best way to redraw arcs + their colours
   d3.selectAll('.line.' + state_id + '.delegate').style('stroke', (d) => color(d.name));
   d3.selectAll('.line.' + state_id + '.special-delegate').style('stroke', 'maroon');
+
+  d3.selectAll('.label').style('font-weight', 'normal')
 
   tip.hide()
 }

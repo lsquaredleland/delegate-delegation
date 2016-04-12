@@ -55,16 +55,16 @@ function drawIndividualCircle(svg, {numCircles, properties, className, name, off
       .on('click', onStateClick)
 }
 
-function drawIndividualHex(svg, {data, className, name, offset = 0, x, y}) {
+function drawIndividualHex(svg, {numCircles, properties, className, name, offset = 0, x, y}) {
   const hexbin = d3.hexbin()
     .size([h, w]);
-  const num = data
-  svg.selectAll('.hex.' + className + '.' + name)
-      .data(new Array(num)).enter()
+  const data = _.map(new Array(numCircles), () => properties);
+  svg.selectAll('.circle.' + className + '.' + name)
+      .data(data).enter()
     .append('path')
-      .attr("class", classNames('hax', name, className))
+      .attr("class", classNames('circle', name, className))
       .style('fill', name ? color(name) : null)
-      .attr("d", hexbin.hexagon(10))
+      .attr("d", hexbin.hexagon(peoplePerCircle))
       .attr("transform", (d, i) => "translate(" + x + "," + (y - i*4 - offset*4) + ") rotate(30)");
 }
 
@@ -106,19 +106,30 @@ function drawArc(svg, {x, y, state_id, delegated}) {
 }
 
 function candidateMouseover(name) {
+  const states = _.filter(stateData, (state) => {
+    const r = _.find(state[results], (candidate) => c(candidate.name) === name);
+    return r ? r.del > 0 : false;
+  })
+  const stateNames = _.map(states, (state) => state.state_id);
+
+  // Would better to tag base with the names of candidates who won delegate there....
+  d3.selectAll('.base').filter((d) => {
+    return _.has(d,'properties') ? _.includes(stateNames, d.properties.state_id) : false;
+  }).style('fill', (candidatesInfo[name].baseColour))
+
   d3.selectAll('.line').style({'stroke-opacity': .2});
   d3.selectAll('.line.' + name).style('stroke-opacity', 1);
-  d3.selectAll('.label-' + name).style('font-weight', 'bold');
+  d3.selectAll('.label.' + name).style('font-weight', 'bold');
 }
 
 function candidateMouseout(name) {
+  d3.selectAll('.base').style('fill', '#F7F0E4')
   d3.selectAll('.line').style('stroke-opacity', .5);
-  d3.selectAll('.label-' + name).style('font-weight', 'normal');
+  d3.selectAll('.label.' + name).style('font-weight', 'normal');
 }
 
 function drawCandidates(svg, {candidates}) {
   // Consider using a <div> element instead of using text
-  console.log(candidates)
 
   _.forEach(candidates, (data, name) => {
     const candidateInfo = candidatesInfo[name];
@@ -133,7 +144,7 @@ function drawCandidates(svg, {candidates}) {
       .on('mouseover', () => candidateMouseover(name))
       .on('mouseout', () => candidateMouseout(name))
     svg.append('text')
-      .attr('class', classNames('title-label-' + name))
+      .attr('class', classNames('title-label', name))
       .attr({x: loc.lx - xOffset/2, y: loc.ly})
       .style('text-anchor', isLeft ? 'start' : 'end')
       .style('font-weight', 'bold')
@@ -180,7 +191,7 @@ function drawCandidates(svg, {candidates}) {
 
 function appendCandidateDataText(svg, {x, y, name, textAnchor, text}) {
   svg.append('text')
-    .attr({x, y, class: 'label-' + name})
+    .attr({x, y, class: classNames('label',name)})
     .style('text-anchor', textAnchor)
     .text(text)
     .on('mouseover', () => candidateMouseover(name))
