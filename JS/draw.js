@@ -106,12 +106,13 @@ function drawArc(svg, {x, y, state_id, delegated}) {
 }
 
 function candidateMouseover(name) {
+  d3.selectAll('.line').style({'stroke-opacity': .2});
   d3.selectAll('.line.' + name).style('stroke-opacity', 1);
   d3.selectAll('.label-' + name).style('font-weight', 'bold');
 }
 
 function candidateMouseout(name) {
-  d3.selectAll('.line.' + name).style('stroke-opacity', .5);
+  d3.selectAll('.line').style('stroke-opacity', .5);
   d3.selectAll('.label-' + name).style('font-weight', 'normal');
 }
 
@@ -132,9 +133,10 @@ function drawCandidates(svg, {candidates}) {
       .on('mouseover', () => candidateMouseover(name))
       .on('mouseout', () => candidateMouseout(name))
     svg.append('text')
-      .attr('class', 'label-' + name)
+      .attr('class', classNames('title-label-' + name))
       .attr({x: loc.lx - xOffset/2, y: loc.ly})
       .style('text-anchor', isLeft ? 'start' : 'end')
+      .style('font-weight', 'bold')
       .text(candidatesInfo[name].label)
 
     drawCandidateTotals(svg, {candidates, name, data, candidateInfo, isLeft, isTopCenter, xOffset});

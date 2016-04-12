@@ -13,8 +13,8 @@ let usStates;
 
 const candidatesInfo = {
   // Meta
-  totaldelegates: {label: "Total Delegates", lx: w * .35, ly: margin.top, baseColour: 'gray', stroke: 'white'},
-  totalspecialdelegates: {label: "Total Special Delegates", lx: w*.65, ly: margin.top, baseColour: 'gray', stroke:'maroon'},
+  totaldelegates: {label: "Total Delegates", lx: w * .25, ly: margin.top, baseColour: 'gray', stroke: 'white'},
+  totalspecialdelegates: {label: "Total Special Delegates", lx: w*.75, ly: margin.top, baseColour: 'gray', stroke:'maroon'},
 
   // Democratic
   clinton: {label: "Clinton", lx: margin.right + sidePadding, ly: h/4, baseColour: 'rgb(119, 208, 233)'},
@@ -38,7 +38,6 @@ const candidatesInfo = {
 
 // Is there data on number of votes recieved rather than percentage per state...?
 const q = d3_queue.queue()
-  // http://bbg-gfx.s3-website-us-east-1.amazonaws.com/auto-calendar.json
   .defer(d3.json, 'http://bbg-gfx.s3-website-us-east-1.amazonaws.com/auto-calendar.json' || 'data/auto-calendar-backup.json')
   // This has meta data such as the total number of candidates etc
   // From http://www.bloomberg.com/politics/graphics/2016-delegate-tracker/data/calendar-base.csv
@@ -87,11 +86,14 @@ const q = d3_queue.queue()
       }
     })
     loadState("GOP")
-    loadState("Demo")
     generateLegend()
   });
 
 function loadState(party) {
+  const notSelected = party === 'GOP' ? 'demo' : 'GOP';
+  d3.select('#' + party).style('background-color', 'orange');
+  d3.select('#' + notSelected).style('background-color', '#F7F0E4');
+
   const GOP = party === 'GOP';
   const results = GOP ? 'R_results' : 'D_results';
   const delegates = GOP ? 'R_delegates' : 'D_delegates';
@@ -109,7 +111,12 @@ function loadState(party) {
     feature.properties = data;
   })
 
-  const svg = d3.select("#chart" + party).append('svg')
+  // Removing chart if it exists
+  if (d3.select('#chartArea svg').node()) {
+    d3.select('#chartArea svg').remove();
+    tip.hide();
+  }
+  const svg = d3.select("#chartArea").append('svg')
       .attr("width", w)
       .attr("height", h)
       .style({display: 'block', margin: 'auto'});
@@ -168,7 +175,7 @@ function loadState(party) {
       .append("rect")
       .attr('class', (d) => classNames('base', d.state_id))
       .attr('x', getRectX)
-      .attr('y', h  * .9)
+      .attr('y', h - height)
       .attr({height, width})
       .on('click', toggleStateClick)
   svgState.selectAll("rect.state")
@@ -177,19 +184,19 @@ function loadState(party) {
       .append("rect")
       .attr('class', (d) => classNames('state', d.state_id))
       .attr('x', getRectX)
-      .attr('y', h  * .9)
+      .attr('y', h - height)
       .attr({height, width})
       .style("fill", (d) => voteToTexture[d[type]].url())
       .style('pointer-events', 'none') // binding this to .state in css doesn't work
       .attr("transform", (d, i) => {
-        const [x, y] = [w * .45 + i*spacing + width/2, h * .9 + height/2];
+        const [x, y] = [w * .45 + i*spacing + width/2, h - height + height/2];
 
         return "translate(" + x + "," + y + ")"
             + "scale(" + (d.PCNT_POPEST18PLUS/100 || 1) + ")"
             + "translate(" + -x + "," + -y + ")";
       })
       .each((d, i) => {
-        const [x, y] = [w * .45 + i*spacing + width/2, h * .9 + height/2];
+        const [x, y] = [w * .45 + i*spacing + width/2, h - height + height/2];
         d.centroid = {x, y}
         const totaldelegates = d[delegates];
         const delegated = d[results];

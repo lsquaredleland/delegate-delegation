@@ -1,7 +1,7 @@
 function generateLegend() {
   const svg = d3.select("#legendArea").append('svg')
       .attr("width", 1000)
-      .attr("height", 150)
+      .attr("height", 120)
       .style({display: 'block', margin: 'auto'});
 
   const svgLegendTexture = svg.append('g')
