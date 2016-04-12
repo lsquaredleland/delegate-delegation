@@ -15,16 +15,18 @@
     <script src="lib/classNames.js" charset="utf-8"></script>
 
     <link rel="stylesheet" href="style.css">
+    <link href='https://fonts.googleapis.com/css?family=Libre+Baskerville:400,700' rel='stylesheet' type='text/css'>
   </head>
 
   <body>
     <h1>Delegate Delegation</h1>
 
+    <div id="choose-party">
+      <div class="choose-party-btn" id="demo" onclick="loadState('demo')">Democrats</div>
+      <div class="choose-party-btn" id="GOP" onclick="loadState('GOP')">Republicans</div>
+    </div>
+
     <div id="chartArea">
-      <h2>GOP</h2>
-      <div id="chartGOP"></div>
-      <h2>Democrats</h2>
-      <div id="chartDemo"></div>
     </div>
 
     <h3>Legend</h3>

@@ -58,10 +58,13 @@ function stateTextures(svg) {
   const diffVoteType = ["Primary", "Caucus", "Convention"]
   const primary = textures.lines()
     .thicker()
+    .stroke('gray');
   const caucus = textures.lines()
-    .orientation("3/8", "7/8");
+    .orientation("3/8", "7/8")
+    .stroke('gray');
   const convention = textures.lines()
-    .orientation("7/8");
+    .orientation("7/8")
+    .stroke('gray');
   svg.call(primary);
   svg.call(caucus);
   svg.call(convention);
