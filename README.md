@@ -1,10 +1,12 @@
 # Delegate Delegation 2016 
 This is a visualisation that was created for [Major League Data Challenge](http://www.majorleaguedatachallenge.com/), hosted by Graphistry.
 
+Special thanks to bloomberg for having unprotected APIs that I am piggybacking off of, so that all the delegate data is up to date~.
+
 ## Features:
 * Click on states to get further information
 * Hover around to see highlighting
-* Textures encode what type of voting system is used: `Primary`, `Caucus`, `Convetion`
+* Textures encode what type of voting system is used: `Primary`, `Caucus`, `Convention`
 * Percentage of a texture that fills the state reflects the percentage of the population that is +18, did not look hard enough for data for the territories...
 * If there is a maroon ring around the circle, then they are special delegates
 
