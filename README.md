@@ -13,6 +13,7 @@ Special thanks to bloomberg for having unprotected APIs that I am piggybacking o
 
 ## TODO:
 * All notes are done inline... awk
+* Transpile ES6 code to ES5...
 
 ### Bugs:
 * Use custom tooltips as if click on circle stack rather than state the tooltip will appear in the wrong area.
