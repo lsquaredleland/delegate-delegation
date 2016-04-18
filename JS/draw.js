@@ -113,9 +113,8 @@ function candidateMouseover(name) {
   const stateNames = _.map(states, (state) => state.state_id);
 
   // Would better to tag base with the names of candidates who won delegate there....
-  d3.selectAll('.base').filter((d) => {
-    return _.has(d,'properties') ? _.includes(stateNames, d.properties.state_id) : false;
-  }).style('fill', (candidatesInfo[name].baseColour))
+  d3.selectAll('.base').filter((d) => _.has(d,'properties') ? _.includes(stateNames, d.properties.state_id) : false)
+    .style({fill: candidatesInfo[name].baseColour, opacity: .5})
 
   d3.selectAll('.line').style({'stroke-opacity': .2});
   d3.selectAll('.line.' + name).style('stroke-opacity', 1);
