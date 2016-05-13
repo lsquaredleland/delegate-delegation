@@ -33,3 +33,9 @@ Special thanks to bloomberg for having unprotected APIs that I am piggybacking o
 * http://blog.apps.npr.org/2015/05/11/hex-tile-maps.html
 * https://bl.ocks.org/mbostock/3081153
 * http://www.progonos.com/furuti/MapProj/Normal/ProjPM/projPM.html
+* http://www.ralphstraumann.ch/blog/2013/05/conceptualisation-of-a-d3-linked-view-with-hexagonal-cartogram/
+* http://www.ralphstraumann.ch/
+* http://www.progonos.com/furuti/MapProj/Normal/ProjPM/projPM.html
+* http://remittances.herokuapp.com/?en
+* http://xliberation.com/googlecharts/d3flights.html
+* http://indiemapper.com/app/learnmore.php?l=index
