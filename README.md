@@ -1,5 +1,5 @@
 # Delegate Delegation 2016
-This is a visualisation that was created for [Major League Data Challenge](http://www.majorleaguedatachallenge.com/), hosted by Graphistry.
+This is a visualisation that was created for [Major League Data Challenge](http://www.majorleaguedatachallenge.com/), hosted by Graphistry. Submission resulted in an honorable mention.
 
 Special thanks to bloomberg for having unprotected APIs that I am piggybacking off of, so that all the delegate data is up to date~.
 
