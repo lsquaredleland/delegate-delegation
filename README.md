@@ -16,6 +16,7 @@ Special thanks to bloomberg for having unprotected APIs that I am piggybacking o
 * Transpile ES6 code to ES5...
 * Consider pulling data from NYT instead - http://www.nytimes.com/interactive/2016/us/elections/primary-calendar-and-results.html
 
+
 ### Bugs:
 * Use custom tooltips as if click on circle stack rather than state the tooltip will appear in the wrong area.
 
