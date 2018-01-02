@@ -48,7 +48,7 @@ const candidatesInfo = {
 
 // Is there data on number of votes recieved rather than percentage per state...?
 const q = d3_queue.queue()
-  .defer(d3.json, 'http://bbg-gfx.s3-website-us-east-1.amazonaws.com/auto-calendar.json' || 'data/auto-calendar-backup.json')
+  .defer(d3.json, /*'http://bbg-gfx.s3-website-us-east-1.amazonaws.com/auto-calendar.json' ||*/ 'data/auto-calendar-backup.json')
   // This has meta data such as the total number of candidates etc
   // From http://www.bloomberg.com/politics/graphics/2016-delegate-tracker/data/calendar-base.csv
   .defer(d3.csv, 'data/calendar-base.csv')
